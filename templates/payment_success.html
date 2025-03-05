@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Payment Confirmation</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .container { max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { color: green; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Payment Successful</h2>
+        <p>Hello {{ email }},</p>
+        <p>Your payment of <span class="success">${{ amount }}</span> was successful.</p>
+        <p>Thank you for your purchase!</p>
+    </div>
+</body>
+</html>
