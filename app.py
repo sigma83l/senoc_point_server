@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, session
 from functools import wraps
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
-from flask_jwt_extended import JWTManager, verify_jwt_in_request, create_access_token, create_refresh_token, jwt_required, get_jwt_identity, get_jwt, unset_jwt_cookies, set_access_cookies, set_refresh_cookies
+from flask_jwt_extended import JWTManager, verify_jwt_in_request, create_access_token, create_refresh_token, jwt_required, get_jwt_identity, get_jwt, unset_jwt_cookies, set_access_cookies, set_refresh_cookies, decode_token
 from flask_mail import Mail, Message
 from werkzeug.utils import secure_filename
 from flask_migrate import Migrate
@@ -206,35 +206,41 @@ class Review(db.Model):
 #     # Send email (Assuming you have an email sending function)
 #     print(body)  # Debugging: Print the rendered email body
 
-# @app.before_request
-# def check_and_refresh_token():
-#     # Check if access and refresh tokens exist
-#     access_token = request.cookies.get('access_token')
-#     refresh_token = request.cookies.get('refresh_token')
+@app.before_request
+def check_and_refresh_token():
+    access_token = request.cookies.get('access_token_cookie')
+    refresh_token = request.cookies.get('refresh_token_cookie')
 
-#     if not access_token and not refresh_token:
-#         return  # Do nothing and allow the request to proceed as usual
+    if not access_token and not refresh_token:
+        return jsonify({"msg": "Missing tokens"}), 401
 
-#     try:
-#         # Verify access token
-#         verify_jwt_in_request()
-#     except Unauthorized:
-#         # If access token is expired, try to refresh it
-#         if refresh_token:
-#             response = refresh_access_token()
-#             if response.status_code == 200:
-#                 return response  # Return refreshed token response
-#         return Unauthorized("Invalid or expired token")  # In case the refresh token is also invalid or error occurs
+    try:
+        # Verify JWT using cookies instead of Authorization header
+        verify_jwt_in_request(locations=["cookies"])
+    except Unauthorized:
+        if refresh_token:
+            return refresh_access_token()
+        return jsonify({"msg": "Invalid or expired token"}), 401
+
 
 def refresh_access_token():
-    current_user = get_jwt_identity()
+    """Refresh the access token using the refresh token stored in cookies."""
+    refresh_token = request.cookies.get('refresh_token_cookie')
 
-    new_access_token =  create_access_token(identity=str(current_user.id))
+    if not refresh_token:
+        return jsonify({"msg": "Missing refresh token"}), 401
 
-    response = make_response(jsonify({"msg": "Access token refreshed"}))
-    set_access_cookies(response, new_access_token)
+    try:
+        decoded = decode_token(refresh_token)
+        identity = decoded['sub']
+        new_access_token = create_access_token(identity=identity)
 
-    return response
+        response = make_response(jsonify({"msg": "Access token refreshed"}))
+        set_access_cookies(response, new_access_token)  # Set the new token in cookies
+
+        return response
+    except:
+        return jsonify({"msg": "Invalid refresh token"}), 401
 
 def delete_from_gcs(image_url):
     """Deletes an image from GCS based on its URL"""
