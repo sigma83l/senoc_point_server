@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 from jinja2 import Template
 from werkzeug.exceptions import Unauthorized
 import datetime
+from datetime import timedelta
 from datetime import timezone
 from flask import jsonify, make_response
 from google.cloud import storage
@@ -37,6 +38,11 @@ app.config['MAIL_USE_SSL'] = os.getenv('MAIL_USE_SSL') == 'True'
 app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
 app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
 app.config["REFRESH_SECRET_KEY"] = os.getenv("REFRESH_SECRET_KEY") 
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=30)
+app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(days=7)
+app.config["JWT_TOKEN_LOCATION"] = ["cookies"]
+app.config["JWT_COOKIE_SECURE"] = False
+app.config["JWT_COOKIE_CSRF_PROTECT"] = False
 app.secret_key = os.getenv('SECRET_KEY')
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] =  os.getenv("GCS")
@@ -206,8 +212,15 @@ class Review(db.Model):
 #     # Send email (Assuming you have an email sending function)
 #     print(body)  # Debugging: Print the rendered email body
 
+from flask import request
+
 @app.before_request
 def check_and_refresh_token():
+    open_routes = ["/users/login", "/users/register"]
+
+    if request.path in open_routes:
+        return  
+
     access_token = request.cookies.get('access_token_cookie')
     refresh_token = request.cookies.get('refresh_token_cookie')
 
@@ -215,8 +228,7 @@ def check_and_refresh_token():
         return jsonify({"msg": "Missing tokens"}), 401
 
     try:
-        # Verify JWT using cookies instead of Authorization header
-        verify_jwt_in_request(locations=["cookies"])
+        decoded_token = decode_token(access_token)
     except Unauthorized:
         if refresh_token:
             return refresh_access_token()
@@ -224,7 +236,6 @@ def check_and_refresh_token():
 
 
 def refresh_access_token():
-    """Refresh the access token using the refresh token stored in cookies."""
     refresh_token = request.cookies.get('refresh_token_cookie')
 
     if not refresh_token:
@@ -236,11 +247,11 @@ def refresh_access_token():
         new_access_token = create_access_token(identity=identity)
 
         response = make_response(jsonify({"msg": "Access token refreshed"}))
-        set_access_cookies(response, new_access_token)  # Set the new token in cookies
+        response.set_cookie('access_token_cookie', new_access_token, httponly=True, secure=True)
 
         return response
-    except:
-        return jsonify({"msg": "Invalid refresh token"}), 401
+    except Exception as e:
+        return jsonify({"msg": f"Invalid refresh token: {str(e)}"}), 401
 
 def delete_from_gcs(image_url):
     """Deletes an image from GCS based on its URL"""
