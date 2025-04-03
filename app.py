@@ -22,10 +22,12 @@ import stripe
 import os
 import random
 import time
+import pymysql
 
 load_dotenv()
 
 app = Flask(__name__)
+pymysql.install_as_MySQLdb()
 database_url = os.getenv("DATABASE_URL", "")
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 print(os.getenv('DATABASE_URL').replace("mysql://", "mysql+pymysql://"))
