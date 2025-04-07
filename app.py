@@ -16,6 +16,8 @@ from flask import jsonify, make_response
 from google.cloud import storage
 import uuid
 from flask_cors import CORS
+import json
+import tempfile
 
 
 import stripe
@@ -47,7 +49,12 @@ app.config["JWT_COOKIE_SECURE"] = False
 app.config["JWT_COOKIE_CSRF_PROTECT"] = False
 app.secret_key = os.getenv('SECRET_KEY')
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] =  os.getenv("GCS")
+gcs_json_str = os.getenv("GCS")
+gcs_data = json.loads(gcs_json_str)
+with tempfile.NamedTemporaryFile(delete=False, mode='w', suffix='.json') as temp_file:
+    json.dump(gcs_data, temp_file)
+    temp_file_path = temp_file.name
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = temp_file_path
 storage_client = storage.Client()
 bucket_name = "senoc_bucket"
 bucket = storage_client.get_bucket(bucket_name)
