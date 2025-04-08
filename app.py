@@ -941,25 +941,26 @@ def send_email(to_email, template_path, context):
 
 @app.route('/request-otp', methods=['POST'])
 def request_otp():
-    data = request.get_json()
-    email = data.get('email')
-    current_time = datetime.datetime.utcnow()
 
-    otp_key = f"otp_{email}_timestamp"
-    current_time = datetime.datetime.now(timezone.utc).timestamp()
+    # data = request.get_json()
+    # email = data.get('email')
+    # current_time = datetime.datetime.utcnow()
 
-    if otp_key in session and (current_time - session[otp_key]) < OTP_REQUEST_LIMIT:
-        return jsonify({'message': 'Please wait before requesting another OTP'}), 429
+    # otp_key = f"otp_{email}_timestamp"
+    # current_time = datetime.datetime.now(timezone.utc).timestamp()
 
-    otp = random.randint(100000, 999999)
-    session[f"otp_{email}"] = {
-    "otp": otp,
-    "expires_at": datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(seconds=OTP_EXPIRY_TIME)
-    }    
-    session[otp_key] = current_time
-    session.permanent = True
+    # if otp_key in session and (current_time - session[otp_key]) < OTP_REQUEST_LIMIT:
+    #     return jsonify({'message': 'Please wait before requesting another OTP'}), 429
 
-    send_email(email, 'templates/otp_email.html', {'otp': otp})
+    # otp = random.randint(100000, 999999)
+    # session[f"otp_{email}"] = {
+    # "otp": otp,
+    # "expires_at": datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(seconds=OTP_EXPIRY_TIME)
+    # }    
+    # session[otp_key] = current_time
+    # session.permanent = True
+
+    # send_email(email, 'templates/otp_email.html', {'otp': otp})
     return jsonify({'message': 'OTP sent to email'})
 
 @app.route('/verify-otp', methods=['POST'])
