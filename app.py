@@ -372,7 +372,8 @@ def verify_otp_fn(email, otp):
 
 @app.route('/users/register', methods=['POST'])
 def register():
-    data = request.get_json()
+    # data = request.get_json()
+    data = request
     required_fields = ['name', 'email', 'password']
     if not all(field in data for field in required_fields):
         return jsonify({'error': 'Missing fields'}), 400
@@ -944,25 +945,25 @@ def send_email(to_email, template_path, context):
 @app.route('/request-otp', methods=['POST'])
 def request_otp():
     
-    # data = request.get_json()
-    # email = data.get('email')
-    # current_time = datetime.datetime.utcnow()
+    data = {"email": "hamedsedaghatqrpr83@gmail.com"}
+    email = data.get('email')
+    current_time = datetime.datetime.utcnow()
 
-    # otp_key = f"otp_{email}_timestamp"
-    # current_time = datetime.datetime.now(timezone.utc).timestamp()
+    otp_key = f"otp_{email}_timestamp"
+    current_time = datetime.datetime.now(timezone.utc).timestamp()
 
-    # if otp_key in session and (current_time - session[otp_key]) < OTP_REQUEST_LIMIT:
-    #     return jsonify({'message': 'Please wait before requesting another OTP'}), 429
+    if otp_key in session and (current_time - session[otp_key]) < OTP_REQUEST_LIMIT:
+        return jsonify({'message': 'Please wait before requesting another OTP'}), 429
 
-    # otp = random.randint(100000, 999999)
-    # session[f"otp_{email}"] = {
-    # "otp": otp,
-    # "expires_at": datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(seconds=OTP_EXPIRY_TIME)
-    # }    
-    # session[otp_key] = current_time
-    # session.permanent = True
+    otp = random.randint(100000, 999999)
+    session[f"otp_{email}"] = {
+    "otp": otp,
+    "expires_at": datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(seconds=OTP_EXPIRY_TIME)
+    }    
+    session[otp_key] = current_time
+    session.permanent = True
 
-    # send_email(email, 'templates/otp_email.html', {'otp': otp})
+    send_email(email, 'templates/otp_email.html', {'otp': otp})
     return jsonify({'message': 'OTP sent to email'})
 
 @app.route('/verify-otp', methods=['POST'])
