@@ -18,7 +18,8 @@ import uuid
 from flask_cors import CORS
 import json
 import tempfile
-
+from flask import request
+import re
 
 import stripe
 import os
@@ -221,27 +222,46 @@ class Review(db.Model):
 #     # Send email (Assuming you have an email sending function)
 #     print(body)  # Debugging: Print the rendered email body
 
-from flask import request
 
 @app.before_request
 def check_and_refresh_token():
-    open_routes = ["/users/login", "/users/register"]
+    open_paths = [
+        "/users/login",
+        "/users/register",
+        "/",
+    ]
 
-    if request.path in open_routes:
-        return  
+    # Open route patterns (supports dynamic segments)
+    open_patterns = [
+        r"^/products/brand/\d+$",
+        r"^/products/category/\d+$",
+        r"^/reviews/\d+$"
+    ]
 
+    path = request.path
+
+    # Direct match
+    if path in open_paths:
+        return
+
+    # Pattern match
+    for pattern in open_patterns:
+        if re.match(pattern, path):
+            return
+
+    # Token check logic
     access_token = request.cookies.get('access_token_cookie')
     refresh_token = request.cookies.get('refresh_token_cookie')
 
     if not access_token and not refresh_token:
-        return jsonify({"msg": "Missing tokens"}), 401
+        return jsonify({"msg": f"Missing tokens path: {path}"}), 401
 
     try:
-        decoded_token = decode_token(access_token)
+        decode_token(access_token)
     except Unauthorized:
         if refresh_token:
             return refresh_access_token()
-        return jsonify({"msg": "Invalid or expired token"}), 401
+        return jsonify({"msg": f"Invalid or expired token path: {path}"}), 401
 
 
 def refresh_access_token():
