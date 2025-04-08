@@ -46,6 +46,7 @@ app.config["JWT_TOKEN_LOCATION"] = ["cookies"]
 app.config["JWT_COOKIE_SECURE"] = False
 app.config["JWT_COOKIE_CSRF_PROTECT"] = False
 app.secret_key = os.getenv('SECRET_KEY')
+app.config['DEBUG'] = True
 
 gcs_json_str = os.getenv("GCS")
 gcs_data = json.loads(gcs_json_str)
@@ -57,7 +58,8 @@ storage_client = storage.Client()
 bucket_name = "senoc_bucket"
 bucket = storage_client.get_bucket(bucket_name)
 # CORS(app, supports_credentials=True, origins=["https://senocmarketing.com"])
-CORS(app, supports_credentials=True, resources={r"/*": {"origins":"*"}})
+# CORS(app, supports_credentials=True, resources={r"/*": {"origins":"*"}})
+CORS(app)
 
 UPLOAD_FOLDER = 'static/uploads/products'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
@@ -941,7 +943,7 @@ def send_email(to_email, template_path, context):
 
 @app.route('/request-otp', methods=['POST'])
 def request_otp():
-
+    
     # data = request.get_json()
     # email = data.get('email')
     # current_time = datetime.datetime.utcnow()
