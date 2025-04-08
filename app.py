@@ -224,46 +224,46 @@ class Review(db.Model):
 #     print(body)  # Debugging: Print the rendered email body
 
 
-@app.before_request
-def check_and_refresh_token():
-    open_paths = [
-        "/users/login",
-        "/users/register",
-        "/products"
-        "/",
-    ]
+# @app.before_request
+# def check_and_refresh_token():
+#     open_paths = [
+#         "/users/login",
+#         "/users/register",
+#         "/products"
+#         "/",
+#     ]
 
-    # Open route patterns (supports dynamic segments)
-    open_patterns = [
-        r"^/products/brand/\d+$",
-        r"^/products/category/\d+$",
-        r"^/reviews/\d+$"
-    ]
+#     # Open route patterns (supports dynamic segments)
+#     open_patterns = [
+#         r"^/products/brand/\d+$",
+#         r"^/products/category/\d+$",
+#         r"^/reviews/\d+$"
+#     ]
 
-    path = request.path
+#     path = request.path
 
-    # Direct match
-    if 1==1:
-        return
+#     # Direct match
+#     if True:
+#         return
 
-    # Pattern match
-    for pattern in open_patterns:
-        if re.match(pattern, path):
-            return
+#     # Pattern match
+#     for pattern in open_patterns:
+#         if re.match(pattern, path):
+#             return
 
-    # Token check logic
-    access_token = request.cookies.get('access_token_cookie')
-    refresh_token = request.cookies.get('refresh_token_cookie')
+#     # Token check logic
+#     access_token = request.cookies.get('access_token_cookie')
+#     refresh_token = request.cookies.get('refresh_token_cookie')
 
-    if not access_token and not refresh_token:
-        return jsonify({"msg": f"Missing tokens path: {path}"}), 401
+#     if not access_token and not refresh_token:
+#         return jsonify({"msg": f"Missing tokens path: {path}"}), 401
 
-    try:
-        decode_token(access_token)
-    except Unauthorized:
-        if refresh_token:
-            return refresh_access_token()
-        return jsonify({"msg": f"Invalid or expired token path: {path}"}), 401
+#     try:
+#         decode_token(access_token)
+#     except Unauthorized:
+#         if refresh_token:
+#             return refresh_access_token()
+#         return jsonify({"msg": f"Invalid or expired token path: {path}"}), 401
 
 
 def refresh_access_token():
