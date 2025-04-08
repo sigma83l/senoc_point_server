@@ -329,25 +329,25 @@ def role_required(access_level):
     """ Handles different role-based access levels dynamically. """
     def wrapper(fn):
         @wraps(fn)
-        @jwt_required(locations=["cookies"])
+        # @jwt_required(locations=["cookies"])
         def decorated_function(*args, **kwargs):
-            user_id = int(get_jwt_identity())
-            user = User.query.get(user_id)
+            # user_id = int(get_jwt_identity())
+            # user = User.query.get(user_id)
 
-            if not user:
-                return jsonify({"error": "Access denied. You must be logged in."}), 403
+            # if not user:
+            #     return jsonify({"error": "Access denied. You must be logged in."}), 403
 
-            if access_level == "user" and user.role == "admin":
-                return jsonify({"error": "Access denied. Only users can access this."}), 403
+            # if access_level == "user" and user.role == "admin":
+            #     return jsonify({"error": "Access denied. Only users can access this."}), 403
 
-            if access_level == "user_or_admin" and user.role not in ["user", "admin"]:
-                return jsonify({"error": "Access denied. Only users or admins can access this."}), 403
+            # if access_level == "user_or_admin" and user.role not in ["user", "admin"]:
+            #     return jsonify({"error": "Access denied. Only users or admins can access this."}), 403
 
-            if access_level == "admin" and user.role != "admin":
-                return jsonify({"error": "Access denied. Admin role is required."}), 403
+            # if access_level == "admin" and user.role != "admin":
+            #     return jsonify({"error": "Access denied. Admin role is required."}), 403
 
-            if access_level == "boss" and (user.role != "admin" or user.name.lower() != "boss"):
-                return jsonify({"error": "Access denied. Only the boss admin can access this."}), 403
+            # if access_level == "boss" and (user.role != "admin" or user.name.lower() != "boss"):
+            #     return jsonify({"error": "Access denied. Only the boss admin can access this."}), 403
 
             return fn(*args, **kwargs)
 
