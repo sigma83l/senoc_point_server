@@ -228,6 +228,7 @@ def check_and_refresh_token():
     open_paths = [
         "/users/login",
         "/users/register",
+        "/products"
         "/",
     ]
 
