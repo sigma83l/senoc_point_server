@@ -942,11 +942,11 @@ def send_email(to_email, template_path, context):
     mail.send(msg)
     print(f"Sending email to {to_email} with body:\n{body}")
 
-@app.route('/request-otp', methods=['POST'])
-def request_otp():
+@app.route('/request-otp-code', methods=['GET'])
+def request_otp_c():
     
-    data = {"email": "hamedsedaghatqrpr83@gmail.com"}
-    email = data.get('email')
+    # data = {"email": "hamedsedaghatqrpr83@gmail.com"}
+    email = "hamedsedaghatqrpr83@gmail.com"
     current_time = datetime.datetime.utcnow()
 
     otp_key = f"otp_{email}_timestamp"
