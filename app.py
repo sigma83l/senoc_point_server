@@ -373,13 +373,13 @@ def verify_otp_fn(email, otp):
 @app.route('/users/register', methods=['POST'])
 def register():
     data = request.get_json()
-    required_fields = ['name', 'email', 'password', 'otp']
+    required_fields = ['name', 'email', 'password']
     if not all(field in data for field in required_fields):
         return jsonify({'error': 'Missing fields'}), 400
 
-    otp_valid, message = verify_otp_fn(data['email'], data['otp'])
-    if not otp_valid:
-        return jsonify({"error": message}), 400
+    # otp_valid, message = verify_otp_fn(data['email'], data['otp'])
+    # if not otp_valid:
+    #     return jsonify({"error": message}), 400
 
     if User.query.filter_by(email=data['email']).first():
         return jsonify({'error': 'Email already exists'}), 400
