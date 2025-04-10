@@ -57,7 +57,8 @@ os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = temp_file_path
 storage_client = storage.Client()
 bucket_name = "senoc_bucket"
 bucket = storage_client.get_bucket(bucket_name)
-CORS(app, supports_credentials=True, origins=["https://senocmarketing.com"])
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
+# CORS(app, supports_credentials=True, origins=["https://senocmarketing.com"])
 
 UPLOAD_FOLDER = 'static/uploads/products'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
@@ -1108,4 +1109,4 @@ def get_cart_by_user(user_id):
     return jsonify({"cart": [cart.to_dict() for cart in carts]})
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
