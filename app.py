@@ -46,8 +46,8 @@ app.config["JWT_TOKEN_LOCATION"] = ["cookies"]
 app.config["JWT_COOKIE_SECURE"] = False
 app.config["JWT_COOKIE_CSRF_PROTECT"] = False
 app.secret_key = os.getenv('SECRET_KEY')
-app.config['DEBUG'] = True
 
+# os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.getenv("GCS")
 gcs_json_str = os.getenv("GCS")
 gcs_data = json.loads(gcs_json_str)
 with tempfile.NamedTemporaryFile(delete=False, mode='w', suffix='.json') as temp_file:
@@ -57,9 +57,7 @@ os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = temp_file_path
 storage_client = storage.Client()
 bucket_name = "senoc_bucket"
 bucket = storage_client.get_bucket(bucket_name)
-# CORS(app, supports_credentials=True, origins=["https://senocmarketing.com"])
-# CORS(app, supports_credentials=True, resources={r"/*": {"origins":"*"}})
-CORS(app, supports_credentials=True)
+CORS(app, supports_credentials=True, origins=["https://senocmarketing.com"])
 
 UPLOAD_FOLDER = 'static/uploads/products'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
@@ -328,25 +326,25 @@ def role_required(access_level):
     """ Handles different role-based access levels dynamically. """
     def wrapper(fn):
         @wraps(fn)
-        # @jwt_required(locations=["cookies"])
+        @jwt_required(locations=["cookies"])
         def decorated_function(*args, **kwargs):
-            # user_id = int(get_jwt_identity())
-            # user = User.query.get(user_id)
+            user_id = int(get_jwt_identity())
+            user = User.query.get(user_id)
 
-            # if not user:
-            #     return jsonify({"error": "Access denied. You must be logged in."}), 403
+            if not user:
+                return jsonify({"error": "Access denied. You must be logged in."}), 403
 
-            # if access_level == "user" and user.role == "admin":
-            #     return jsonify({"error": "Access denied. Only users can access this."}), 403
+            if access_level == "user" and user.role == "admin":
+                return jsonify({"error": "Access denied. Only users can access this."}), 403
 
-            # if access_level == "user_or_admin" and user.role not in ["user", "admin"]:
-            #     return jsonify({"error": "Access denied. Only users or admins can access this."}), 403
+            if access_level == "user_or_admin" and user.role not in ["user", "admin"]:
+                return jsonify({"error": "Access denied. Only users or admins can access this."}), 403
 
-            # if access_level == "admin" and user.role != "admin":
-            #     return jsonify({"error": "Access denied. Admin role is required."}), 403
+            if access_level == "admin" and user.role != "admin":
+                return jsonify({"error": "Access denied. Admin role is required."}), 403
 
-            # if access_level == "boss" and (user.role != "admin" or user.name.lower() != "boss"):
-            #     return jsonify({"error": "Access denied. Only the boss admin can access this."}), 403
+            if access_level == "boss" and (user.role != "admin" or user.name.lower() != "boss"):
+                return jsonify({"error": "Access denied. Only the boss admin can access this."}), 403
 
             return fn(*args, **kwargs)
 
@@ -373,7 +371,7 @@ def verify_otp_fn(email, otp):
 @app.route('/users/register', methods=['POST'])
 def register():
     # data = request.get_json()
-    data = request
+    data = request.get_json()
     required_fields = ['name', 'email', 'password']
     if not all(field in data for field in required_fields):
         return jsonify({'error': 'Missing fields'}), 400
@@ -942,11 +940,11 @@ def send_email(to_email, template_path, context):
     mail.send(msg)
     print(f"Sending email to {to_email} with body:\n{body}")
 
-@app.route('/request-otp-code', methods=['GET'])
-def request_otp_c():
+@app.route('/request-otp', methods=['POST'])
+def request_otp():
     
-    # data = {"email": "hamedsedaghatqrpr83@gmail.com"}
-    email = "hamedsedaghatqrpr83@gmail.com"
+    data = request.get_json()
+    email = data["email"]
     current_time = datetime.datetime.utcnow()
 
     otp_key = f"otp_{email}_timestamp"
