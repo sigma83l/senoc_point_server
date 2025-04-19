@@ -57,8 +57,8 @@ os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = temp_file_path
 storage_client = storage.Client()
 bucket_name = "senoc_bucket"
 bucket = storage_client.get_bucket(bucket_name)
-CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
-# CORS(app, supports_credentials=True, origins=["https://senocmarketing.com"])
+# CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
+CORS(app, supports_credentials=True, origins=["https://senocmarketing.com", "http://localhost:3000"])
 
 UPLOAD_FOLDER = 'static/uploads/products'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
